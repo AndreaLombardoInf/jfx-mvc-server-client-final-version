@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import java.io.*;
 import java.net.Socket;
@@ -29,6 +30,9 @@ public class ShopController {
 
     @FXML
     private ListView<String> listBuy;
+
+    @FXML
+    private TextField productRequestField;
 
     @FXML
     private void addToComboBox() {
@@ -190,6 +194,7 @@ public class ShopController {
             e.printStackTrace();
         }
     }
+
 
 
 }

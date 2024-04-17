@@ -195,6 +195,8 @@ public class Server {
                     selectedProduct = receivedMessage.getProduct();
                     addLineToFile("/prodotti.txt",selectedProduct.getName() + ";" + selectedProduct.getPrice() + ";" + selectedProduct.getId());
                     removeLineFromFile("/acquisti.txt", selectedProduct.getName() + ";" + selectedProduct.getPrice() + ";" + selectedProduct.getId());
+                case "suggestion":
+                    System.out.println("Messaqggio di suggerimento dall'utente: "+receivedMessage.getSuggestions());
                 default:
 
                     break;

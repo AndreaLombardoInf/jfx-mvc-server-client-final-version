@@ -143,7 +143,24 @@ public class Client extends Application {
             return null;
         }
     }
+    public void sendSuggestion(String s){
+        try{
+            Socket socket = new Socket("localhost", 5555);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
 
+            Message sProductMsg = new Message("suggestion",s);
+            // Send the Message object to the server
+
+            objectOutputStream.writeObject(sProductMsg);
+            objectOutputStream.flush();
+            objectOutputStream.close();
+            objectInputStream.close();
+            socket.close();
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     public void buyProduct(ShopController c, Product p){
         try{
             Socket socket = new Socket("localhost", 5555);

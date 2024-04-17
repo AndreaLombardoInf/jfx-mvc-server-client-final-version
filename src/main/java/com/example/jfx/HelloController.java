@@ -105,9 +105,9 @@ public class HelloController {
 
    @FXML
    private void sendRequest(ActionEvent event) {
+      client.sendSuggestion(productRequestField.getText());
       productRequestField.clear();
    }
-
 
    @FXML
    private void homeClick(ActionEvent event) {

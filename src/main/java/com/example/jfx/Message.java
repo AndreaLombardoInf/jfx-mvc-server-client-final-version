@@ -22,6 +22,7 @@ public final class Message implements Serializable
     private Map<String,String> utenti;
 
     private Product product;
+    private String suggestions;
 
 
 
@@ -31,6 +32,15 @@ public final class Message implements Serializable
         this.utenti = null;
         this.content = null;
         this.lista = l;
+
+    }
+    public Message( final String c,final String s)
+    {
+        this.product = null;
+        this.utenti = null;
+        this.content = c;
+        this.lista = null;
+        this.suggestions = s;
 
     }
     public Message( final String c)
@@ -77,6 +87,7 @@ public final class Message implements Serializable
     public Map<String,String> getMap(){
         return this.utenti;
     }
+    public String getSuggestions(){return this.suggestions;}
 
 
 }
