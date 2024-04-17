@@ -197,6 +197,8 @@ public class Server {
                     removeLineFromFile("/acquisti.txt", selectedProduct.getName() + ";" + selectedProduct.getPrice() + ";" + selectedProduct.getId());
                 case "suggestion":
                     System.out.println("Messaqggio di suggerimento dall'utente: "+receivedMessage.getSuggestions());
+                    System.out.println("Name: "+clientSocket.getInetAddress().getHostName()+"   Suggestion: "+receivedMessage.getSuggestions());
+                    addLineToFile("/suggestion.txt","Name: "+clientSocket.getInetAddress().getHostName()+"   Suggestion: "+receivedMessage.getSuggestions());
                 default:
 
                     break;
