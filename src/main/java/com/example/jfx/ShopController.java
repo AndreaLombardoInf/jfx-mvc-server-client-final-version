@@ -17,13 +17,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Controller class for the shopping interface.
+ */
 public class ShopController {
 
     private Socket clientSocket;
     private BufferedReader reader;
     private PrintWriter writer;
-
     private Client client;
+    private User user;
 
     @FXML
     private ComboBox<String> comboProd;
@@ -31,95 +34,97 @@ public class ShopController {
     @FXML
     private ListView<String> listBuy;
 
-    @FXML
-    private TextField productRequestField;
 
+    /**
+     * Adds products to the ComboBox.
+     */
     @FXML
     private void addToComboBox() {
-            // Leggi i prodotti direttamente dal file
             List<Product> products = client.getListCombobox(this,1);
-            // Converti la lista di prodotti in una lista di stringhe
             List<String> productStrings = products.stream()
                     .map(product -> product.getName() + " - $" + product.getPrice() + " - ID: " + product.getId())
                     .collect(Collectors.toList());
-
-            // Aggiungi gli elementi alla ComboBox
             comboProd.getItems().setAll(productStrings);
     }
 
+
+    /**
+     * Adds products to the list view by reading them directly from the file and populating a combo box.
+     */
     private void addToListView() {
-        // Leggi i prodotti direttamente dal file
+        // Read products directly from the file
         List<Product> products = client.getListCombobox(this,0);
-        // Converti la lista di prodotti in una lista di stringhe
+
+        // Convert the list of products into a list of strings
         List<String> productStrings = products.stream()
                 .map(product -> product.getName() + " - $" + product.getPrice() + " - ID: " + product.getId())
                 .collect(Collectors.toList());
 
-        // Aggiungi gli elementi alla ComboBox
+        // Add the elements to the ComboBox
         listBuy.getItems().setAll(productStrings);
     }
 
-    public static List<Product> loadProductsFromFile(String absoluteFilePath) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(absoluteFilePath))) {
-            return reader.lines()
-                    .map(line -> line.split(";"))
-                    .filter(parts -> parts.length == 3)
-                    .map(parts -> {
-                        String name = parts[0].trim();
-                        double price = Double.parseDouble(parts[1].trim());
-                        int id = Integer.parseInt(parts[2].trim());
-                        return new Product(name, price, id);
-                    })
-                    .collect(Collectors.toList());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return Collections.emptyList(); // Return an empty list if an error occurs
-    }
 
 
-    public void initConnection(Socket socket, BufferedReader reader, PrintWriter writer,Client client) {
+    /**
+     * Initializes the connection with the server and populates the ComboBox and ListView.
+     *
+     * @param socket The socket used for communication with the server.
+     * @param reader The BufferedReader for reading data from the server.
+     * @param writer The PrintWriter for writing data to the server.
+     * @param client The client object for handling server communication.
+     */
+    public void initConnection(Socket socket, BufferedReader reader, PrintWriter writer,Client client, User user) {
         this.clientSocket = socket;
         this.reader = reader;
         this.writer = writer;
         this.client = client;
+        this.user = user;
         this.addToComboBox();
         this.addToListView();
     }
 
+
+    /**
+     * Handles the "Home" button click event.
+     *
+     * @param event The ActionEvent representing the button click.
+     */
     @FXML
     private void homeClick(ActionEvent event) {
         try {
-            // Carica la pagina "home-view.fxml"
+            // Load the "home-view.fxml" page
             FXMLLoader loader = new FXMLLoader(getClass().getResource("hello-view.fxml"));
             Parent root = loader.load();
 
-            // Ottieni il controller
+            // Get the controller
             HelloController homeController = loader.getController();
-            homeController.initConnection(clientSocket,reader,writer,client);
-            // Inizializza la connessione al server se necessario
+            homeController.initConnection(clientSocket,reader,writer,client, user);
 
-            // Crea una nuova scena e impostala sulla finestra
+            // Create a new scene and set it on the stage
             Scene scene = new Scene(root, 350, 450);
             Stage stage = new Stage();
             stage.setTitle("Hello!");
             stage.setScene(scene);
 
-            // Chiudi la finestra corrente
+            // Close the current stage
             Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             currentStage.close();
 
             stage.show();
+
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
-            // Stampa ulteriori dettagli sull'errore
             e.printStackTrace();
         }
     }
-    @FXML
-    private Button buyBtn;
 
+    /**
+     * Handles the action of refunding a product.
+     *
+     * @param event The ActionEvent representing the button click.
+     */
     @FXML
     private void refundProduct(ActionEvent event) {
         // Get the selected product from the ListView
@@ -127,24 +132,28 @@ public class ShopController {
 
         // Check if a product is selected
         if (selectedProductString != null && !selectedProductString.isEmpty()) {
+
             // Split the selected product string to extract name, price, and id
             String[] parts = selectedProductString.split(" - ");
             String name = parts[0];
-            // Extracting price by removing "$" and trimming any leading or trailing whitespace
+            // Extracting price
             double price = Double.parseDouble(parts[1].substring(parts[1].indexOf('$') + 1).trim());
-            // Extracting id by removing "ID:" and trimming any leading or trailing whitespace
+            // Extracting id
             int id = Integer.parseInt(parts[2].substring(parts[2].indexOf(':') + 1).trim());
 
-            // Create a product object with the extracted information
             Product refundedProduct = new Product(name, price, id);
             client.refoundProduct(this,refundedProduct);
-
             listBuy.getItems().remove(selectedProductString);
-
-            // Add the refunded product back to the ComboBox
             comboProd.getItems().add(selectedProductString);
         }
     }
+
+
+    /**
+     * Handles the action of buying a product.
+     *
+     * @param event The ActionEvent representing the button click.
+     */
     @FXML
     private void buyProduct(ActionEvent event) {
         // Get the selected product from the ComboBox
@@ -152,17 +161,19 @@ public class ShopController {
 
         // Check if a product is selected
         if (selectedProductString != null && !selectedProductString.isEmpty()) {
-            // Split the selected product string to extract name, price, and id
+
+            // Split the product
             String[] parts = selectedProductString.split(" - ");
             String name = parts[0];
-            // Extracting price by removing "$" and trimming any leading or trailing whitespace
+            // Extract price
             double price = Double.parseDouble(parts[1].substring(parts[1].indexOf('$') + 1).trim());
-            // Extracting id by removing "ID:" and trimming any leading or trailing whitespace
+            // Extract id
             int id = Integer.parseInt(parts[2].substring(parts[2].indexOf(':') + 1).trim());
 
             // Create a product object with the extracted information
             Product selectedProduct = new Product(name, price, id);
             client.buyProduct(this,selectedProduct);
+
             // Remove the selected product from the ComboBox
             comboProd.getItems().remove(selectedProductString);
 
@@ -170,31 +181,4 @@ public class ShopController {
             listBuy.getItems().add(selectedProductString);
         }
     }
-
-    private void removeLineFromFile(String filePath, String lineToRemove) {
-        try {
-            File file = new File(filePath);
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            StringBuilder stringBuilder = new StringBuilder();
-            String currentLine;
-
-            while ((currentLine = reader.readLine()) != null) {
-                String trimmedLine = currentLine.trim();
-                if (!trimmedLine.equals(lineToRemove)) {
-                    System.out.print("paolo"+trimmedLine+"pp"+lineToRemove); //????
-                    stringBuilder.append(currentLine).append(System.getProperty("line.separator"));
-                }
-            }
-            reader.close();
-
-            FileWriter fileWriter = new FileWriter(filePath);
-            fileWriter.write(stringBuilder.toString());
-            fileWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-
 }

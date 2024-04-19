@@ -6,98 +6,106 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
+
+/**
+ * Controller class for the product view.
+ */
 public class productController {
 
-
-
-    @FXML
-    private Button homeButton;
     private Socket clientSocket;
     private BufferedReader reader;
     private PrintWriter writer;
     private Client client;
+    private User user;
     private List<Product> productList;
+
     @FXML
     private  ListView<String> productListView;
 
 
-    public void initData(Client client) {
+    /**
+     * Initializes product data and sets up the ListView.
+     *
+     * @param client The client instance for server communication.
+     */
+    public void initData(Client client, User user) {
         // Load the product data from the file
         this.client = client;
+        this.user = user;
         client.getListProduct(this);
+
         // Convert the list of products to a list of strings
         List<String> productStrings = new ArrayList<>();
         for (Product product : productList) {
             productStrings.add(product.getName() + " - $" + product.getPrice() + " - ID: " + product.getId());
         }
-
-        // Initialize the ListView with product data
         addToListView();
     }
 
+
+    /**
+     * Converts the list of products into a list of strings and populates the ListView.
+     */
     private void addToListView() {
 
-        // Converti la lista di prodotti in una lista di stringhe
         List<String> productStrings = productList.stream()
                 .map(product -> product.getName() + " - $" + product.getPrice() + " - ID: " + product.getId())
                 .collect(Collectors.toList());
 
-        // Aggiungi gli elementi alla ComboBox
         productListView.getItems().setAll(productStrings);
     }
 
 
-    public void initConnection(Socket socket, BufferedReader reader, PrintWriter writer,Client client) {
-        this.clientSocket = socket;
-        this.reader = reader;
-        this.writer = writer;
-        this.client = client;
-        // Initialize any necessary data or communication with the server
-    }
-
+    /**
+     * Handles the event when the "Home" button is clicked.
+     *
+     * @param event The ActionEvent triggered by clicking the button.
+     */
     @FXML
     private void homeClick(ActionEvent event) {
         try {
-            // Carica la pagina "home-view.fxml"
+            // Load the "hello-view.fxml" page
             FXMLLoader loader = new FXMLLoader(getClass().getResource("hello-view.fxml"));
             Parent root = loader.load();
 
-            // Ottieni il controller
             HelloController homeController = loader.getController();
-            homeController.initConnection(clientSocket, reader, writer, client);
-            // Inizializza la connessione al server se necessario
+            homeController.initConnection(clientSocket, reader, writer, client, user);
 
-            // Crea una nuova scena e impostala sulla finestra
+            // Create a new scene and set it on the window
             Scene scene = new Scene(root, 350, 450);
             Stage stage = new Stage();
             stage.setTitle("Hello!");
             stage.setScene(scene);
 
-            // Chiudi la finestra corrente
+            // close current windows
             Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             currentStage.close();
 
             stage.show();
+
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
-            // Stampa ulteriori dettagli sull'errore
             e.printStackTrace();
         }
     }
 
+    /**
+     * Sets the received list of products.
+     *
+     * @param receivedList The list of products received from the server.
+     */
     public void setProductList(List<Product> receivedList) {
-        this.productList=receivedList;
+        this.productList = receivedList;
+        // update ListView
+        addToListView();
     }
 }
